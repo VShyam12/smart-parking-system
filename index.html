@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking System</title>
+    <meta name="description" content="Reserve parking slots easily with our Smart Parking System. Choose from multiple locations and manage your parking reservations in one place.">
+    <!-- External CSS libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .parking-slot {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .parking-slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .available {
+            background-color: #10b981; /* green-500 */
+            color: white;
+        }
+        
+        .reserved {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .input-focus-effect:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Application Container -->
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Login Page -->
+        <div id="login-page" class="min-h-screen flex flex-col md:flex-row">
+            <!-- Left side branded panel -->
+            <div class="hidden md:flex md:w-1/2 gradient-bg text-white p-10 flex-col justify-between">
+                <div>
+                    <div class="flex items-center mb-16">
+                        <i class="fas fa-parking text-white text-3xl mr-3"></i>
+                        <h1 class="text-2xl font-bold">Smart Parking</h1>
+                    </div>
+                    <div class="mb-8">
+                        <h2 class="text-4xl font-bold mb-4">Reserve your parking slot with ease</h2>
+                        <p class="text-lg opacity-90">Manage your vehicle parking with our intuitive, easy-to-use platform. Find available slots at your preferred locations.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 mb-12">
+                        <div class="bg-white bg-opacity-10 p-4 rounded-lg">
+                            <i class="fas fa-map-marker-alt text-2xl mb-3"></i>
+                            <h3 class="font-semibold text-lg mb-1">Multiple Locations</h3>
+                            <p class="text-sm opacity-80">Choose from various parking locations across the city</p>
+                        </div>
+                        <div class="bg-white bg-opacity-10 p-4 rounded-lg">
+                            <i class="fas fa-clock text-2xl mb-3"></i>
+                            <h3 class="font-semibold text-lg mb-1">Real-Time Availability</h3>
+                            <p class="text-sm opacity-80">See which slots are available in real-time</p>
+                        </div>
+                        <div class="bg-white bg-opacity-10 p-4 rounded-lg">
+                            <i class="fas fa-mobile-alt text-2xl mb-3"></i>
+                            <h3 class="font-semibold text-lg mb-1">Easy Reservations</h3>
+                            <p class="text-sm opacity-80">Book your spot with just a few clicks</p>
+                        </div>
+                        <div class="bg-white bg-opacity-10 p-4 rounded-lg">
+                            <i class="fas fa-user-shield text-2xl mb-3"></i>
+                            <h3 class="font-semibold text-lg mb-1">Secure System</h3>
+                            <p class="text-sm opacity-80">Your information is always safe with us</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-75">
+                    &copy; 2025 Smart Parking System. All rights reserved.
+                </div>
+            </div>
+            
+            <!-- Right side login form -->
+            <div class="flex-1 flex items-center justify-center p-4 md:p-8">
+                <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+                    <div class="text-center mb-8 md:hidden">
+                        <div class="inline-flex items-center mb-4">
+                            <i class="fas fa-parking text-blue-500 text-3xl mr-2"></i>
+                            <h1 class="text-2xl font-bold text-gray-800">Smart Parking</h1>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Welcome back</h2>
+                    <p class="text-gray-500 mb-8">Sign in to your account to continue</p>
+                    
+                    <!-- Login Form -->
+                    <form id="login-form" class="space-y-6">
+                        <!-- Error message (hidden by default) -->
+                        <div id="login-error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md text-sm hidden">
+                            Invalid email or password. Please try again.
+                        </div>
+                        
+                        <!-- Email field -->
+                        <div>
+                            <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">
+                                Email Address
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input
+                                    id="login-email"
+                                    name="email"
+                                    type="email"
+                                    value="user@example.com"
+                                    required
+                                    class="appearance-none rounded-lg block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 input-focus-effect"
+                                    placeholder="you@example.com"
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Password field -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="login-password" class="block text-sm font-medium text-gray-700">
+                                    Password
+                                </label>
+                                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                    Forgot password?
+                                </a>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input
+                                    id="login-password"
+                                    name="password"
+                                    type="password"
+                                    value="password123"
+                                    required
+                                    class="appearance-none rounded-lg block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 input-focus-effect"
+                                    placeholder="••••••••"
+                                >
+                                <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Remember me checkbox -->
+                        <div class="flex items-center">
+                            <input
+                                id="remember-me"
+                                name="remember-me"
+                                type="checkbox"
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            >
+                            <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                                Remember me for 30 days
+                            </label>
+                        </div>
+
+                        <!-- Submit button -->
+                        <div>
+                            <button
+                                type="submit"
+                                id="login-button"
+                                class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+                            >
+                                <span id="login-spinner" class="loader mr-2 hidden"></span>
+                                Sign in
+                            </button>
+                        </div>
+                        
+                        <!-- Sign up option -->
+                        <div class="text-center text-sm text-gray-600">
+                            Don't have an account? 
+                            <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+                                Create a free account
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application (initially hidden) -->
+        <div id="main-app" class="min-h-screen flex flex-col hidden">
+            <!-- Header -->
+            <header id="header" class="bg-white shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center py-4">
+                        <div class="flex items-center cursor-pointer" id="header-logo">
+                            <i class="fas fa-parking text-blue-500 text-2xl mr-2"></i>
+                            <h1 class="text-xl font-bold text-gray-800">Smart Parking</h1>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="hidden md:block">
+                                <button id="header-view-reservations" 
+                                    class="flex items-center text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
+                                    <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
+                                    <span>My Reservations</span>
+                                </button>
+                            </div>
+                            
+                            <div class="relative">
+                                <button class="p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="relative">
+                                <button 
+                                    class="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none" 
+                                    id="header-user-menu-button">
+                                    <span id="header-username">User</span>
+                                    <img 
+                                        class="h-8 w-8 rounded-full" 
+                                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                                        alt="User profile"
+                                    >
+                                </button>
+                                
+                                <div id="header-user-menu" class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-lg z-10 hidden">
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user mr-2"></i> Your Profile
+                                    </a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-cog mr-2"></i> Settings
+                                    </a>
+                                    <button 
+                                        id="header-mobile-reservations"
+                                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 md:hidden">
+                                        <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
+                                        My Reservations
+                                    </button>
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <button 
+                                        id="header-logout"
+                                        class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area with Multiple Pages -->
+            <main class="flex-1">
+                <!-- Locations Page -->
+                <div id="locations-page" class="py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Select Parking Location</h2>
+                            <p class="text-gray-600">Choose a parking location to view available slots</p>
+                        </div>
+                        
+                        <div id="location-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Location cards will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot Selection Page (initially hidden) -->
+                <div id="slot-selection-page" class="hidden py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="flex items-center mb-6">
+                            <button id="slot-selection-back" class="mr-3 text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-arrow-left"></i> Back to locations
+                            </button>
+                            <h2 id="slot-selection-location-name" class="text-2xl font-bold text-gray-800"></h2>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                                <div>
+                                    <h3 id="slot-selection-address" class="text-xl font-semibold text-gray-800 mb-1"></h3>
+                                    <p class="text-gray-600">Select an available parking slot to reserve</p>
+                                </div>
+                                
+                                <div class="flex mt-4 md:mt-0 space-x-6">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-4 h-4 bg-green-500 rounded-md mr-2"></span>
+                                        <span class="text-gray-700">Available</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-4 h-4 bg-red-500 rounded-md mr-2"></span>
+                                        <span class="text-gray-700">Reserved</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Parking Layout -->
+                            <div class="parking-layout">
+                                <div class="mb-8">
+                                    <h4 class="text-lg font-medium text-gray-700 mb-3">Ground Floor</h4>
+                                    <div id="ground-floor-slots" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                                        <!-- Ground floor slots will be inserted dynamically here -->
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium text-gray-700 mb-3">First Floor</h4>
+                                    <div id="first-floor-slots" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                                        <!-- First floor slots will be inserted dynamically here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reservation Form Page (initially hidden) -->
+                <div id="reservation-form-page" class="hidden py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-3xl mx-auto">
+                        <div class="flex items-center mb-6">
+                            <button id="reservation-form-back" class="mr-3 text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-arrow-left"></i> Back to slots
+                            </button>
+                            <h2 class="text-2xl font-bold text-gray-800">Complete Reservation</h2>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <div class="mb-6 p-4 bg-blue-50 rounded-md border border-blue-100">
+                                <div class="flex flex-col sm:flex-row justify-between">
+                                    <div class="mb-3 sm:mb-0">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Reservation Details</h3>
+                                        <p id="reservation-location-details" class="text-gray-600"></p>
+                                    </div>
+                                    <div class="flex items-center justify-center bg-blue-500 text-white rounded-lg px-4 py-2">
+                                        <span id="reservation-slot-id" class="text-lg font-bold mr-2"></span>
+                                        <span id="reservation-slot-floor" class="text-sm"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Reservation Form -->
+                            <form id="reservation-form" class="space-y-6">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-800 mb-4">Driver Information</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Full Name *
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="fullName" 
+                                                name="fullName" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="fullName-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Phone Number *
+                                            </label>
+                                            <input 
+                                                type="tel" 
+                                                id="phone" 
+                                                name="phone" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="phone-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Email Address *
+                                            </label>
+                                            <input 
+                                                type="email" 
+                                                id="email" 
+                                                name="email" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="email-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="idNumber" class="block text-sm font-medium text-gray-700 mb-1">
+                                                ID Number
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="idNumber" 
+                                                name="idNumber" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-800 mb-4">Vehicle Information</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="licensePlate" class="block text-sm font-medium text-gray-700 mb-1">
+                                                License Plate *
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="licensePlate" 
+                                                name="licensePlate" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="licensePlate-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="vehicleType" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Vehicle Type *
+                                            </label>
+                                            <select 
+                                                id="vehicleType" 
+                                                name="vehicleType" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                                <option value="">Select vehicle type</option>
+                                                <option value="sedan">Sedan</option>
+                                                <option value="suv">SUV</option>
+                                                <option value="hatchback">Hatchback</option>
+                                                <option value="truck">Truck</option>
+                                                <option value="van">Van</option>
+                                                <option value="motorcycle">Motorcycle</option>
+                                            </select>
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="vehicleType-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="make" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Make *
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="make" 
+                                                name="make" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="make-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="model" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Model *
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="model" 
+                                                name="model" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="model-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="color" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Color *
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="color" 
+                                                name="color" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="color-error"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-800 mb-4">Reservation Duration</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="startTime" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Start Time *
+                                            </label>
+                                            <input 
+                                                type="datetime-local" 
+                                                id="startTime" 
+                                                name="startTime" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="startTime-error"></p>
+                                        </div>
+                                        <div>
+                                            <label for="endTime" class="block text-sm font-medium text-gray-700 mb-1">
+                                                End Time *
+                                            </label>
+                                            <input 
+                                                type="datetime-local" 
+                                                id="endTime" 
+                                                name="endTime" 
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                required
+                                            >
+                                            <p class="mt-1 text-xs text-red-500 error-message hidden" id="endTime-error"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8 flex justify-end">
+                                    <button 
+                                        type="submit" 
+                                        class="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                                    >
+                                        Complete Reservation
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation Page (initially hidden) -->
+                <div id="confirmation-page" class="hidden py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-3xl mx-auto">
+                        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                            <div class="flex justify-center mb-6">
+                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-green-500 text-3xl"></i>
+                                </div>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4">Reservation Confirmed!</h2>
+                            <p class="text-gray-600 mb-8">Your parking slot has been successfully reserved.</p>
+                            
+                            <div class="bg-blue-50 rounded-md p-6 mb-8 text-left">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Reservation Details</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Location</p>
+                                        <p id="confirmation-location" class="text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Slot</p>
+                                        <p id="confirmation-slot" class="text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Reservation ID</p>
+                                        <p id="confirmation-id" class="text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Vehicle</p>
+                                        <p id="confirmation-vehicle" class="text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Start Time</p>
+                                        <p id="confirmation-start" class="text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">End Time</p>
+                                        <p id="confirmation-end" class="text-gray-800 font-medium"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                                <button 
+                                    id="view-reservations-button" 
+                                    class="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                                >
+                                    View My Reservations
+                                </button>
+                                <button 
+                                    id="return-to-home-button" 
+                                    class="px-6 py-3 bg-gray-200 text-gray-800 font-medium rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+                                >
+                                    Return to Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Reservations Page (initially hidden) -->
+                <div id="reservations-page" class="hidden py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-2xl font-bold text-gray-800">My Reservations</h2>
+                                <button id="reservations-back" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-arrow-left mr-1"></i> Back to locations
+                                </button>
+                            </div>
+                            <p class="text-gray-600">Manage your current parking reservations</p>
+                        </div>
+                        
+                        <div id="reservations-list" class="space-y-4">
+                            <!-- Reservations will be inserted dynamically here -->
+                            <div id="no-reservations" class="bg-white rounded-lg shadow-md p-8 text-center">
+                                <i class="fas fa-calendar-times text-gray-400 text-5xl mb-4"></i>
+                                <h3 class="text-xl font-medium text-gray-800 mb-2">No Active Reservations</h3>
+                                <p class="text-gray-600 mb-6">You don't have any active parking reservations at the moment.</p>
+                                <button id="no-reservations-back" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                    Find Parking Slots
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript for the application -->
+    <script>
+        // Parking Data Model
+        const initialParkingData = {
+            locations: [
+                { 
+                  id: 'downtown', 
+                  name: 'Downtown Parking', 
+                  address: '123 Main Street, Downtown', 
+                  availableSlots: 18, 
+                  occupiedSlots: 6,
+                  imageUrl: 'https://images.unsplash.com/photo-1470224114660-3f6686c562eb?auto=format&fit=crop&w=800&h=400'
+                },
+                { 
+                  id: 'mall', 
+                  name: 'Shopping Mall Parking', 
+                  address: '500 Commerce Way, Westside', 
+                  availableSlots: 24, 
+                  occupiedSlots: 12,
+                  imageUrl: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?auto=format&fit=crop&w=800&h=400'
+                },
+                { 
+                  id: 'airport', 
+                  name: 'Airport Parking', 
+                  address: '1200 Airport Road, Terminal A', 
+                  availableSlots: 32, 
+                  occupiedSlots: 48,
+                  imageUrl: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?auto=format&fit=crop&w=800&h=400'
+                }
+            ],
+            slots: {
+                downtown: [
+                  { id: 'A1', floor: 'Ground Floor', status: 'available' },
+                  { id: 'A2', floor: 'Ground Floor', status: 'available' },
+                  { id: 'A3', floor: 'Ground Floor', status: 'available' },
+                  { id: 'A4', floor: 'Ground Floor', status: 'available' },
+                  { id: 'A5', floor: 'Ground Floor', status: 'available' },
+                  { id: 'A6', floor: 'Ground Floor', status: 'reserved' },
+                  { id: 'B1', floor: 'First Floor', status: 'available' },
+                  { id: 'B2', floor: 'First Floor', status: 'reserved' },
+                  { id: 'B3', floor: 'First Floor', status: 'available' },
+                  { id: 'B4', floor: 'First Floor', status: 'available' },
+                  { id: 'B5', floor: 'First Floor', status: 'reserved' },
+                  { id: 'B6', floor: 'First Floor', status: 'available' }
+                ],
+                mall: [
+                  { id: 'C1', floor: 'Ground Floor', status: 'available' },
+                  { id: 'C2', floor: 'Ground Floor', status: 'reserved' },
+                  { id: 'C3', floor: 'Ground Floor', status: 'available' },
+                  { id: 'C4', floor: 'Ground Floor', status: 'available' },
+                  { id: 'C5', floor: 'Ground Floor', status: 'available' },
+                  { id: 'C6', floor: 'Ground Floor', status: 'reserved' },
+                  { id: 'D1', floor: 'First Floor', status: 'available' },
+                  { id: 'D2', floor: 'First Floor', status: 'available' },
+                  { id: 'D3', floor: 'First Floor', status: 'reserved' },
+                  { id: 'D4', floor: 'First Floor', status: 'available' },
+                  { id: 'D5', floor: 'First Floor', status: 'available' },
+                  { id: 'D6', floor: 'First Floor', status: 'reserved' }
+                ],
+                airport: [
+                  { id: 'E1', floor: 'Ground Floor', status: 'available' },
+                  { id: 'E2', floor: 'Ground Floor', status: 'reserved' },
+                  { id: 'E3', floor: 'Ground Floor', status: 'available' },
+                  { id: 'E4', floor: 'Ground Floor', status: 'reserved' },
+                  { id: 'E5', floor: 'Ground Floor', status: 'available' },
+                  { id: 'E6', floor: 'Ground Floor', status: 'reserved' },
+                  { id: 'F1', floor: 'First Floor', status: 'available' },
+                  { id: 'F2', floor: 'First Floor', status: 'reserved' },
+                  { id: 'F3', floor: 'First Floor', status: 'available' },
+                  { id: 'F4', floor: 'First Floor', status: 'available' },
+                  { id: 'F5', floor: 'First Floor', status: 'reserved' },
+                  { id: 'F6', floor: 'First Floor', status: 'available' }
+                ]
+            },
+            reservations: []
+        };
+
+        // Registered users (in a real application, this would be server-side)
+        const users = [
+            { id: 1, email: 'user@example.com', password: 'password123', name: 'Alex Johnson' },
+            { id: 2, email: 'demo@example.com', password: 'demo1234', name: 'Demo User' }
+        ];
+
+        // Application state
+        let currentUser = null;
+        let currentLocation = null;
+        let selectedSlot = null;
+        let viewingReservations = false;
+
+        // Load initial data and check for login status when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Clear local storage to start fresh (remove for production)
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('currentUser');
+            
+            // Initialize the application state
+            initializeApp();
+            
+            // Add event listeners
+            addEventListeners();
+        });
+
+        // Initialize the application
+        function initializeApp() {
+            // Check if user is already logged in (we're forcing logout above for testing)
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+            const storedUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (isAuthenticated && storedUser) {
+                // User is already logged in, show main app
+                currentUser = storedUser;
+                showMainApp(currentUser);
+            } else {
+                // Make sure the login page is visible and main app is hidden
+                document.getElementById('login-page').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+            }
+
+            // Initialize localStorage with parking data if not present
+            if (!localStorage.getItem('parkingData')) {
+                localStorage.setItem('parkingData', JSON.stringify(initialParkingData));
+            }
+
+            // Set up password visibility toggle
+            const togglePassword = document.getElementById('toggle-password');
+            const passwordInput = document.getElementById('login-password');
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    // Toggle icon
+                    if (type === 'password') {
+                        this.innerHTML = '<i class="fas fa-eye"></i>';
+                    } else {
+                        this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                    }
+                });
+            }
+        }
+
+        // Add all event listeners
+        function addEventListeners() {
+            // Login form submission
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+
+            // Logout button
+            const logoutButton = document.getElementById('header-logout');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+
+            // User menu toggle
+            const userMenuButton = document.getElementById('header-user-menu-button');
+            if (userMenuButton) {
+                userMenuButton.addEventListener('click', toggleUserMenu);
+            }
+
+            // Close user menu when clicking outside
+            document.addEventListener('click', function(event) {
+                const userMenu = document.getElementById('header-user-menu');
+                const userMenuButton = document.getElementById('header-user-menu-button');
+                
+                if (userMenu && userMenu.classList.contains('block') && 
+                    !userMenu.contains(event.target) && 
+                    !userMenuButton.contains(event.target)) {
+                    userMenu.classList.remove('block');
+                    userMenu.classList.add('hidden');
+                }
+            });
+
+            // Header logo (back to locations)
+            const headerLogo = document.getElementById('header-logo');
+            if (headerLogo) {
+                headerLogo.addEventListener('click', function() {
+                    showPage('locations-page');
+                    currentLocation = null;
+                    selectedSlot = null;
+                    viewingReservations = false;
+                });
+            }
+
+            // View reservations button
+            const viewReservationsButton = document.getElementById('header-view-reservations');
+            if (viewReservationsButton) {
+                viewReservationsButton.addEventListener('click', function() {
+                    viewReservations();
+                });
+            }
+
+            // Mobile view reservations button
+            const mobileReservationsButton = document.getElementById('header-mobile-reservations');
+            if (mobileReservationsButton) {
+                mobileReservationsButton.addEventListener('click', function() {
+                    viewReservations();
+                    // Close the dropdown
+                    const userMenu = document.getElementById('header-user-menu');
+                    userMenu.classList.add('hidden');
+                    userMenu.classList.remove('block');
+                });
+            }
+
+            // Return to home button on confirmation page
+            const returnToHomeButton = document.getElementById('return-to-home-button');
+            if (returnToHomeButton) {
+                returnToHomeButton.addEventListener('click', function() {
+                    showPage('locations-page');
+                    currentLocation = null;
+                    selectedSlot = null;
+                });
+            }
+
+            // View reservations button on confirmation page
+            const viewReservationsButtonConfirm = document.getElementById('view-reservations-button');
+            if (viewReservationsButtonConfirm) {
+                viewReservationsButtonConfirm.addEventListener('click', function() {
+                    viewReservations();
+                });
+            }
+
+            // Back button from reservations page
+            const reservationsBackButton = document.getElementById('reservations-back');
+            if (reservationsBackButton) {
+                reservationsBackButton.addEventListener('click', function() {
+                    viewingReservations = false;
+                    showPage('locations-page');
+                });
+            }
+
+            // No reservations back button
+            const noReservationsBackButton = document.getElementById('no-reservations-back');
+            if (noReservationsBackButton) {
+                noReservationsBackButton.addEventListener('click', function() {
+                    viewingReservations = false;
+                    showPage('locations-page');
+                });
+            }
+
+            // Back button on slot selection page
+            const slotSelectionBackButton = document.getElementById('slot-selection-back');
+            if (slotSelectionBackButton) {
+                slotSelectionBackButton.addEventListener('click', function() {
+                    currentLocation = null;
+                    showPage('locations-page');
+                });
+            }
+
+            // Back button on reservation form
+            const reservationFormBackButton = document.getElementById('reservation-form-back');
+            if (reservationFormBackButton) {
+                reservationFormBackButton.addEventListener('click', function() {
+                    selectedSlot = null;
+                    showPage('slot-selection-page');
+                });
+            }
+
+            // Reservation form submission
+            const reservationForm = document.getElementById('reservation-form');
+            if (reservationForm) {
+                reservationForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    handleReservationSubmit();
+                });
+            }
+        }
+
+        // Handle login form submission
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('login-email');
+            const passwordInput = document.getElementById('login-password');
+            const errorMessage = document.getElementById('login-error');
+            const loginButton = document.getElementById('login-button');
+            const loginSpinner = document.getElementById('login-spinner');
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            
+            // Reset error state
+            errorMessage.classList.add('hidden');
+            emailInput.classList.remove('border-red-500');
+            passwordInput.classList.remove('border-red-500');
+            
+            // Validate inputs
+            if (!email) {
+                emailInput.classList.add('border-red-500');
+                errorMessage.textContent = 'Email is required';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            if (!password) {
+                passwordInput.classList.add('border-red-500');
+                errorMessage.textContent = 'Password is required';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            // Show loading state
+            loginButton.disabled = true;
+            if (loginSpinner) {
+                loginSpinner.classList.remove('hidden');
+            }
+            
+            // Simulate server request delay
+            setTimeout(() => {
+                // Check for the specific credentials
+                if (email === 'user@example.com' && password === 'password123') {
+                    // Login successful
+                    currentUser = {
+                        id: 1,
+                        name: 'Alex Johnson',
+                        email: email
+                    };
+                    
+                    // Store in localStorage
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    localStorage.setItem('isAuthenticated', 'true');
+                    
+                    // Show main app
+                    showMainApp();
+                } else {
+                    // Login failed
+                    errorMessage.textContent = 'Invalid credentials. Use user@example.com and password123';
+                    errorMessage.classList.remove('hidden');
+                    
+                    // Highlight fields
+                    emailInput.classList.add('border-red-500');
+                    passwordInput.classList.add('border-red-500');
+                }
+                
+                // Reset loading state
+                loginButton.disabled = false;
+                if (loginSpinner) {
+                    loginSpinner.classList.add('hidden');
+                }
+            }, 800); // Simulate network delay
+        }
+
+        // Handle logout
+        function handleLogout() {
+            // Clear authentication data
+            localStorage.removeItem('currentUser');
+            localStorage.setItem('isAuthenticated', 'false');
+            
+            // Reset application state
+            currentUser = null;
+            currentLocation = null;
+            selectedSlot = null;
+            viewingReservations = false;
+            
+            // Show login page
+            document.getElementById('login-page').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+        }
+
+        // Toggle user menu
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('header-user-menu');
+            if (userMenu.classList.contains('hidden')) {
+                userMenu.classList.remove('hidden');
+                userMenu.classList.add('block');
+            } else {
+                userMenu.classList.remove('block');
+                userMenu.classList.add('hidden');
+            }
+        }
+
+        // Show main application after successful login
+        function showMainApp(user) {
+            // Hide login page and show main app
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            
+            // Update UI with user information
+            document.getElementById('header-username').textContent = user.name;
+            
+            // Load locations page
+            loadLocationsPage();
+        }
+
+        // Show a specific page and hide others
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = [
+                'locations-page', 
+                'slot-selection-page', 
+                'reservation-form-page', 
+                'confirmation-page', 
+                'reservations-page'
+            ];
+            
+            pages.forEach(page => {
+                const element = document.getElementById(page);
+                if (element) {
+                    element.classList.add('hidden');
+                }
+            });
+            
+            // Show the requested page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+            
+            // Additional actions based on which page is being shown
+            if (pageId === 'locations-page') {
+                loadLocationsPage();
+            } else if (pageId === 'slot-selection-page' && currentLocation) {
+                loadSlotSelectionPage(currentLocation);
+            } else if (pageId === 'reservations-page') {
+                loadReservationsPage();
+            }
+        }
+
+        // Load the locations page
+        function loadLocationsPage() {
+            const locationCards = document.getElementById('location-cards');
+            if (!locationCards) return;
+            
+            // Clear existing content
+            locationCards.innerHTML = '';
+            
+            // Get parking data from localStorage
+            const parkingData = JSON.parse(localStorage.getItem('parkingData')) || initialParkingData;
+            
+            // Create location cards
+            parkingData.locations.forEach(location => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow';
+                card.innerHTML = `
+                    <div class="relative h-44 overflow-hidden">
+                        <img 
+                            src="${location.imageUrl}" 
+                            alt="${location.name}" 
+                            class="w-full h-full object-cover"
+                        >
+                        <div class="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                            ${location.availableSlots} Available
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">${location.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3">${location.address}</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span> 
+                                    ${location.availableSlots} free
+                                </span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span> 
+                                    ${location.occupiedSlots} occupied
+                                </span>
+                            </div>
+                            <button 
+                                data-location-id="${location.id}" 
+                                class="select-location-button text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                            >
+                                Select <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                locationCards.appendChild(card);
+                
+                // Add event listener to the select button
+                const selectButton = card.querySelector('.select-location-button');
+                selectButton.addEventListener('click', function() {
+                    const locationId = this.getAttribute('data-location-id');
+                    selectLocation(locationId);
+                });
+            });
+        }
+
+        // Handle location selection
+        function selectLocation(locationId) {
+            // Get parking data from localStorage
+            const parkingData = JSON.parse(localStorage.getItem('parkingData')) || initialParkingData;
+            
+            // Find the selected location
+            const location = parkingData.locations.find(loc => loc.id === locationId);
+            if (!location) return;
+            
+            // Set current location
+            currentLocation = location;
+            
+            // Show slot selection page
+            showPage('slot-selection-page');
+        }
+
+        // Load the slot selection page for a location
+        function loadSlotSelectionPage(location) {
+            if (!location) return;
+            
+            // Update location info
+            document.getElementById('slot-selection-location-name').textContent = location.name;
+            document.getElementById('slot-selection-address').textContent = location.address;
+            
+            // Get slots for this location
+            const parkingData = JSON.parse(localStorage.getItem('parkingData')) || initialParkingData;
+            const slots = parkingData.slots[location.id] || [];
+            
+            // Separate slots by floor
+            const groundFloorSlots = slots.filter(slot => slot.floor === 'Ground Floor');
+            const firstFloorSlots = slots.filter(slot => slot.floor === 'First Floor');
+            
+            // Populate ground floor slots
+            const groundFloorContainer = document.getElementById('ground-floor-slots');
+            groundFloorContainer.innerHTML = '';
+            
+            groundFloorSlots.forEach(slot => {
+                const slotEl = document.createElement('div');
+                slotEl.className = `parking-slot ${slot.status} rounded-md flex items-center justify-center p-4 cursor-pointer`;
+                // If status is reserved, make it non-clickable
+                if (slot.status === 'reserved') {
+                    slotEl.classList.add('opacity-75');
+                    slotEl.classList.remove('cursor-pointer');
+                    slotEl.classList.add('cursor-not-allowed');
+                }
+                
+                slotEl.innerHTML = `
+                    <span class="text-lg font-bold">${slot.id}</span>
+                `;
+                
+                groundFloorContainer.appendChild(slotEl);
+                
+                // Add click event for available slots
+                if (slot.status === 'available') {
+                    slotEl.addEventListener('click', function() {
+                        selectSlot(slot);
+                    });
+                }
+            });
+            
+            // Populate first floor slots
+            const firstFloorContainer = document.getElementById('first-floor-slots');
+            firstFloorContainer.innerHTML = '';
+            
+            firstFloorSlots.forEach(slot => {
+                const slotEl = document.createElement('div');
+                slotEl.className = `parking-slot ${slot.status} rounded-md flex items-center justify-center p-4 cursor-pointer`;
+                // If status is reserved, make it non-clickable
+                if (slot.status === 'reserved') {
+                    slotEl.classList.add('opacity-75');
+                    slotEl.classList.remove('cursor-pointer');
+                    slotEl.classList.add('cursor-not-allowed');
+                }
+                
+                slotEl.innerHTML = `
+                    <span class="text-lg font-bold">${slot.id}</span>
+                `;
+                
+                firstFloorContainer.appendChild(slotEl);
+                
+                // Add click event for available slots
+                if (slot.status === 'available') {
+                    slotEl.addEventListener('click', function() {
+                        selectSlot(slot);
+                    });
+                }
+            });
+        }
+
+        // Handle slot selection
+        function selectSlot(slot) {
+            if (!currentLocation || !slot) return;
+            
+            selectedSlot = slot;
+            
+            // Update reservation form with slot details
+            document.getElementById('reservation-location-details').textContent = currentLocation.name;
+            document.getElementById('reservation-slot-id').textContent = slot.id;
+            document.getElementById('reservation-slot-floor').textContent = slot.floor;
+            
+            // Pre-fill email if user is logged in
+            if (currentUser) {
+                document.getElementById('email').value = currentUser.email;
+            }
+            
+            // Set default date/time values
+            const now = new Date();
+            const startTime = new Date(now.getTime() + 15 * 60000); // 15 minutes from now
+            const endTime = new Date(now.getTime() + 2 * 60 * 60000); // 2 hours from now
+            
+            document.getElementById('startTime').value = formatDateTimeForInput(startTime);
+            document.getElementById('endTime').value = formatDateTimeForInput(endTime);
+            
+            // Show reservation form
+            showPage('reservation-form-page');
+        }
+
+        // Handle reservation form submission
+        function handleReservationSubmit() {
+            if (!currentLocation || !selectedSlot) return;
+            
+            // Gather form data
+            const fullName = document.getElementById('fullName').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const idNumber = document.getElementById('idNumber').value;
+            const licensePlate = document.getElementById('licensePlate').value;
+            const vehicleType = document.getElementById('vehicleType').value;
+            const make = document.getElementById('make').value;
+            const model = document.getElementById('model').value;
+            const color = document.getElementById('color').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            // Simple validation
+            if (!fullName || !phone || !email || !licensePlate || !vehicleType || 
+                !make || !model || !color || !startTime || !endTime) {
+                // Show an error or let the browser handle required fields
+                return;
+            }
+            
+            // Create reservation object
+            const reservation = {
+                id: generateReservationId(),
+                userId: currentUser.id,
+                locationId: currentLocation.id,
+                locationName: currentLocation.name,
+                slotId: selectedSlot.id,
+                slotFloor: selectedSlot.floor,
+                userData: {
+                    fullName,
+                    phone,
+                    email,
+                    idNumber,
+                    licensePlate,
+                    vehicleType,
+                    make,
+                    model,
+                    color,
+                    startTime,
+                    endTime
+                },
+                createdAt: new Date().toISOString()
+            };
+            
+            // Update parking data in localStorage
+            const parkingData = JSON.parse(localStorage.getItem('parkingData')) || initialParkingData;
+            
+            // Update slot status to reserved
+            const slots = parkingData.slots[currentLocation.id];
+            const slotIndex = slots.findIndex(s => s.id === selectedSlot.id);
+            if (slotIndex !== -1) {
+                slots[slotIndex].status = 'reserved';
+            }
+            
+            // Update available/occupied counts
+            const locationIndex = parkingData.locations.findIndex(l => l.id === currentLocation.id);
+            if (locationIndex !== -1) {
+                parkingData.locations[locationIndex].availableSlots--;
+                parkingData.locations[locationIndex].occupiedSlots++;
+            }
+            
+            // Add the reservation
+            parkingData.reservations.push(reservation);
+            
+            // Save updated data
+            localStorage.setItem('parkingData', JSON.stringify(parkingData));
+            
+            // Update confirmation page
+            document.getElementById('confirmation-location').textContent = currentLocation.name;
+            document.getElementById('confirmation-slot').textContent = `${selectedSlot.id} (${selectedSlot.floor})`;
+            document.getElementById('confirmation-id').textContent = reservation.id;
+            document.getElementById('confirmation-vehicle').textContent = `${make} ${model}, ${color}`;
+            document.getElementById('confirmation-start').textContent = formatDateString(startTime);
+            document.getElementById('confirmation-end').textContent = formatDateString(endTime);
+            
+            // Show confirmation page
+            showPage('confirmation-page');
+        }
+
+        // View user's reservations
+        function viewReservations() {
+            viewingReservations = true;
+            showPage('reservations-page');
+        }
+
+        // Load the reservations page
+        function loadReservationsPage() {
+            const reservationsList = document.getElementById('reservations-list');
+            const noReservations = document.getElementById('no-reservations');
+            
+            if (!reservationsList) return;
+            
+            // Clear previous reservations (except the no-reservations message)
+            const existingItems = reservationsList.querySelectorAll('.reservation-item');
+            existingItems.forEach(item => item.remove());
+            
+            // Get current reservations
+            const parkingData = JSON.parse(localStorage.getItem('parkingData')) || initialParkingData;
+            const userReservations = parkingData.reservations.filter(res => res.userId === currentUser.id);
+            
+            if (userReservations.length === 0) {
+                // Show the no reservations message
+                if (noReservations) {
+                    noReservations.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            // Hide the no reservations message
+            if (noReservations) {
+                noReservations.classList.add('hidden');
+            }
+            
+            // Sort reservations by creation date (newest first)
+            userReservations.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            // Create reservation cards
+            userReservations.forEach(reservation => {
+                const card = document.createElement('div');
+                card.className = 'reservation-item bg-white rounded-lg shadow-md overflow-hidden';
+                
+                // Determine if the reservation is active based on time
+                const now = new Date();
+                const startTime = new Date(reservation.userData.startTime);
+                const endTime = new Date(reservation.userData.endTime);
+                const isActive = now >= startTime && now <= endTime;
+                const isPast = now > endTime;
+                const isFuture = now < startTime;
+                
+                let statusBadge = '';
+                if (isActive) {
+                    statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>';
+                } else if (isPast) {
+                    statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Completed</span>';
+                } else if (isFuture) {
+                    statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Upcoming</span>';
+                }
+                
+                card.innerHTML = `
+                    <div class="border-b border-gray-200">
+                        <div class="flex justify-between items-center p-4">
+                            <div>
+                                <div class="flex items-center">
+                                    <h3 class="text-lg font-semibold text-gray-800 mr-2">${reservation.locationName}</h3>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-gray-600 text-sm">Reservation ID: ${reservation.id}</p>
+                            </div>
+                            <div class="flex items-center justify-center bg-blue-500 text-white rounded-lg px-3 py-2">
+                                <span class="text-lg font-bold mr-1">${reservation.slotId}</span>
+                                <span class="text-xs">${reservation.slotFloor}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Vehicle</p>
+                                <p class="text-gray-800">${reservation.userData.make} ${reservation.userData.model}, ${reservation.userData.color}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">License Plate</p>
+                                <p class="text-gray-800">${reservation.userData.licensePlate}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Start Time</p>
+                                <p class="text-gray-800">${formatDateString(reservation.userData.startTime)}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">End Time</p>
+                                <p class="text-gray-800">${formatDateString(reservation.userData.endTime)}</p>
+                            </div>
+                        </div>
+                        ${!isPast ? `
+                            <div class="flex justify-end">
+                                <button 
+                                    data-reservation-id="${reservation.id}" 
+                                    class="cancel-reservation-button px-3 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors text-sm font-medium"
+                                >
+                                    Cancel Reservation
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                reservationsList.appendChild(card);
+                
+                // Add cancel button event listener
+                if (!isPast) {
+                    const cancelButton = card.querySelector('.cancel-reservation-button');
+                    if (cancelButton) {
+                        cancelButton.addEventListener('click', function() {
+                            const reservationId = this.getAttribute('data-reservation-id');
+                            cancelReservation(reservationId);
+                        });
+                    }
+                }
+            });
+        }
+
+        // Cancel a reservation
+        function cancelReservation(reservationId) {
+            if (!confirm('Are you sure you want to cancel this reservation?')) {
+                return;
+            }
+            
+            // Get parking data
+            const parkingData = JSON.parse(localStorage.getItem('parkingData')) || initialParkingData;
+            
+            // Find the reservation
+            const reservationIndex = parkingData.reservations.findIndex(res => res.id === reservationId);
+            if (reservationIndex === -1) return;
+            
+            const reservation = parkingData.reservations[reservationIndex];
+            
+            // Update slot status back to available
+            const slots = parkingData.slots[reservation.locationId];
+            const slotIndex = slots.findIndex(s => s.id === reservation.slotId);
+            if (slotIndex !== -1) {
+                slots[slotIndex].status = 'available';
+            }
+            
+            // Update available/occupied counts
+            const locationIndex = parkingData.locations.findIndex(l => l.id === reservation.locationId);
+            if (locationIndex !== -1) {
+                parkingData.locations[locationIndex].availableSlots++;
+                parkingData.locations[locationIndex].occupiedSlots--;
+            }
+            
+            // Remove the reservation
+            parkingData.reservations.splice(reservationIndex, 1);
+            
+            // Save updated data
+            localStorage.setItem('parkingData', JSON.stringify(parkingData));
+            
+            // Reload the reservations page
+            loadReservationsPage();
+        }
+
+        // Utility function to format date for input element
+        function formatDateTimeForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Utility function to format date string for display
+        function formatDateString(dateString) {
+            const date = new Date(dateString);
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            
+            return date.toLocaleString('en-US', options);
+        }
+
+        // Generate a random reservation ID
+        function generateReservationId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let id = '';
+            
+            // Generate a 6-character ID
+            for (let i = 0; i < 6; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            return id;
+        }
+    </script>
+</body>
+</html>
