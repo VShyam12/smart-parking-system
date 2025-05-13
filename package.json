@@ -1,0 +1,15 @@
+{
+  "name": "smart-parking-system",
+  "version": "1.0.0",
+  "description": "Automated testing setup with Playwright Test Runner",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
+  }
+}
